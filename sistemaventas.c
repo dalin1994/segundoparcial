@@ -1,3 +1,6 @@
+using iText.Kernel.Pdf;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -5,12 +8,17 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.Kernel.Geom;
 
 namespace CRUDUsuariosRoles
 {
     class Program
     {
-        static string connectionString = "Server=LAPTOP-6SR12CFI\\SQLEXPRESS;Database=BD_SistemaVentas2;Integrated Security=True;";
+        static string connectionString = "Server=LAPTOP-6SR12CFI\\SQLEXPRESS;Database=BD_SistemaVentas2;Integrated Security=True;";//Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;
         static List<string> historialConsultas = new List<string>();
 
         static void Main(string[] args)
@@ -23,9 +31,10 @@ namespace CRUDUsuariosRoles
                 Console.WriteLine("2. Generar disparadores de auditoría");
                 Console.WriteLine("3. Ejecutar consultas con hilos");
                 Console.WriteLine("4. Ver historial de consultas");
-                Console.WriteLine("5. generar Procedimiento Almacenado");
-                Console.WriteLine("6. actualizar stock");
-                Console.WriteLine("7. Salir");
+                Console.WriteLine("5. Generar Procedimiento Almacenado");
+                Console.WriteLine("6. Actualizar stock");
+                Console.WriteLine("7. Consultas en formato PDF");
+                Console.WriteLine("8. Salir");
 
                 Console.WriteLine("");
                 Console.Write("Ingrese la opción seleccionada: ");
@@ -60,6 +69,9 @@ namespace CRUDUsuariosRoles
                         ejecutarProcedimientoAlmacenado();
                         break;
                     case 7:
+                        logsMenu();
+                        break;
+                    case 8:
                         return;
                     default:
                         Console.WriteLine("Opción no válida. Por favor, ingrese un número del 1 al 5.");
@@ -523,7 +535,7 @@ END
 
                 connection.Open();
 
-                string query = $@"EXEC ProcesoVentas2;";
+                string query = $@"EXEC ProcesoVentas;";
 
                 SqlCommand command = new SqlCommand(query, connection);
                 SqlDataReader reader = command.ExecuteReader();
@@ -564,5 +576,323 @@ END
                 Console.WriteLine($"El archivo con el trigger ha sido generado en: {outputFilePath}");
             }
         }
+
+        //        public static void LogsFiltrosPdf()
+        //        {
+
+        //            string auditFilePath = @"D:\auditsSqlServer\*"; // Ruta a los archivos de auditoría
+
+        //            Console.WriteLine("Enter start date (YYYY-MM-DD):");
+        //            string startDate = Console.ReadLine();
+        //            // Solicitar la fecha de fin del filtro
+        //            Console.WriteLine("Enter end date (YYYY-MM-DD):");
+        //            string endDate = Console.ReadLine();
+
+        //            // Solicitar el filtro de usuario
+        //            Console.WriteLine(@"Enter user filter (e.g., HUGO\sanz):");
+        //            string userFilter = Console.ReadLine();
+
+        //            Console.WriteLine("buscar acciones SELECT, INSERT, UPDATE, DELETE O EXEC :");
+        //            string statment = Console.ReadLine();
+
+        //            // Consulta SQL
+        //            string query = $@"
+        //                SELECT
+        //                    event_time,
+        //                    action_id,
+        //                    succeeded,
+        //                    object_id,
+        //                    statement,
+        //                    server_principal_name,
+        //                    database_principal_name,
+        //                    session_id
+        //                FROM sys.fn_get_audit_file('{auditFilePath}', NULL, NULL)
+        //                WHERE event_time BETWEEN '{startDate}' AND '{endDate}'
+        //                AND server_principal_name = '{userFilter}'
+        //                AND (
+        //					CHARINDEX('{statment}', statement) > 0 )
+        //";
+
+        //            // Conectar a SQL Server y ejecutar la consulta
+        //            using (SqlConnection connection = new SqlConnection(connectionString))
+        //            {
+        //                connection.Open();
+        //                SqlCommand command = new SqlCommand(query, connection);
+        //                SqlDataReader reader = command.ExecuteReader();
+
+        //                // Crear documento PDF
+        //                string pdfPath = "C:/Users/pinar/OneDrive/Escritorio/FilteredLogs.pdf";
+        //                // Convertir las contraseñas a arrays de bytes (UTF-8)
+        //                byte[] userPasswordBytes = System.Text.Encoding.UTF8.GetBytes("12345"); // Contraseña del usuario
+        //                byte[] ownerPasswordBytes = System.Text.Encoding.UTF8.GetBytes("12345"); // Contraseña del propietario
+
+        //                PageSize pageSize = PageSize.A4.Rotate();
+        //                PdfWriter writer = new PdfWriter(pdfPath, new WriterProperties()
+        //                    .SetStandardEncryption(
+        //                        userPasswordBytes,
+        //                        ownerPasswordBytes,
+        //                        EncryptionConstants.ALLOW_PRINTING,
+        //                        EncryptionConstants.ENCRYPTION_AES_128))
+        //                    .SetSmartMode(true);
+
+        //                PdfDocument pdf = new PdfDocument(writer);
+        //                pdf.SetDefaultPageSize(pageSize);
+        //                Document document = new Document(pdf);
+
+        //                // Crear tabla PDF
+        //                Table table = new Table(UnitValue.CreatePercentArray(new float[] { 1, 1, 1, 1, 1, 1, 1, 1 }));
+        //                table.SetWidth(UnitValue.CreatePercentValue(100));
+        //                table.AddHeaderCell("Event Time");
+        //                table.AddHeaderCell("Action ID");
+        //                table.AddHeaderCell("Succeeded");
+        //                table.AddHeaderCell("Object ID");
+        //                table.AddHeaderCell("Statement");
+        //                table.AddHeaderCell("Server Principal Name");
+        //                table.AddHeaderCell("Database Principal Name");
+        //                table.AddHeaderCell("Session ID");
+
+        //                // Agregar datos a la tabla
+        //                while (reader.Read())
+        //                {
+        //                    table.AddCell(reader["event_time"].ToString());
+        //                    table.AddCell(reader["action_id"].ToString());
+        //                    table.AddCell(reader["succeeded"].ToString());
+        //                    table.AddCell(reader["object_id"].ToString());
+        //                    table.AddCell(reader["statement"].ToString());
+        //                    table.AddCell(reader["server_principal_name"].ToString());
+        //                    table.AddCell(reader["database_principal_name"].ToString());
+        //                    table.AddCell(reader["session_id"].ToString());
+        //                }
+
+        //                // Agregar la tabla al documento
+        //                document.Add(table);
+        //                document.Close();
+        //            }
+        //        }
+
+        public static void logsMenu()
+        {
+            Console.WriteLine("Bienvenido al sistema de generación de informes PDF desde logs de auditoría.");
+
+            while (true)
+            {
+                Console.WriteLine("\nMenú Principal:");
+                Console.WriteLine("1. Acceder a los logs sin condiciones");
+                Console.WriteLine("2. Acceder a los logs en un rango de fecha");
+                Console.WriteLine("3. Acceder a los logs según el statement (sin rango de fecha)");
+                Console.WriteLine("4. Acceder a los logs en un rango de fecha y con un statement específico");
+                Console.WriteLine("5. Acceder a los logs en un rango de fecha y seleccionar el statement");
+                Console.WriteLine("6. Salir");
+
+                Console.Write("\nSeleccione una opción: ");
+                string opcion = Console.ReadLine();
+
+                switch (opcion)
+                {
+                    case "1":
+                        LogsFiltrosPdf(null, null, null, "LogsSinCondiciones.pdf");
+                        break;
+                    case "2":
+                        Console.Write("Ingrese la fecha de inicio (YYYY-MM-DD): ");
+                        string startDate2 = Console.ReadLine();
+                        Console.Write("Ingrese la fecha de fin (YYYY-MM-DD): ");
+                        string endDate2 = Console.ReadLine();
+                        LogsFiltrosPdf(startDate2, endDate2, null, "LogsRangoFecha.pdf");
+                        break;
+                    case "3":
+                        Console.Write("Ingrese el statement (SELECT, INSERT, UPDATE, DELETE o EXEC): ");
+                        string statement3 = Console.ReadLine();
+                        LogsFiltrosPdf(null, null, statement3, "LogsPorStatement.pdf");
+                        break;
+                    case "4":
+                        Console.Write("Ingrese la fecha de inicio (YYYY-MM-DD): ");
+                        string startDate4 = Console.ReadLine();
+                        Console.Write("Ingrese la fecha de fin (YYYY-MM-DD): ");
+                        string endDate4 = Console.ReadLine();
+                        Console.Write("Ingrese el statement (SELECT, INSERT, UPDATE, DELETE o EXEC): ");
+                        string statement4 = Console.ReadLine();
+                        LogsFiltrosPdf(startDate4, endDate4, statement4, "LogsRangoFechaYStatement.pdf");
+                        break;
+                    case "5":
+                        Console.Write("Ingrese la fecha de inicio (YYYY-MM-DD): ");
+                        string startDate5 = Console.ReadLine();
+                        Console.Write("Ingrese la fecha de fin (YYYY-MM-DD): ");
+                        string endDate5 = Console.ReadLine();
+                        LogsFiltrosPdfWithStatementSelection(startDate5, endDate5);
+                        break;
+                    case "6":
+                        Console.WriteLine("Saliendo del programa...");
+                        return;
+                    default:
+                        Console.WriteLine("Opción inválida. Por favor, seleccione una opción válida del menú.");
+                        break;
+                }
+
+                Console.WriteLine("\nPresione cualquier tecla para volver al menú principal...");
+                Console.ReadKey();
+            }
+        }
+
+        public static void LogsFiltrosPdfWithStatementSelection(string startDate, string endDate)
+        {
+            Console.WriteLine("\nSeleccione los tipos de statement (puede seleccionar múltiples opciones separadas por comas):");
+            Console.WriteLine("1. SELECT");
+            Console.WriteLine("2. INSERT");
+            Console.WriteLine("3. UPDATE");
+            Console.WriteLine("4. DELETE");
+            Console.WriteLine("5. EXEC");
+
+            Console.Write("\nIngrese los números correspondientes a los statements (ejemplo: 1,2,5): ");
+            string options = Console.ReadLine();
+
+            List<string> statements = new List<string>();
+            foreach (var option in options.Split(','))
+            {
+                switch (option.Trim())
+                {
+                    case "1": statements.Add("SELECT"); break;
+                    case "2": statements.Add("INSERT"); break;
+                    case "3": statements.Add("UPDATE"); break;
+                    case "4": statements.Add("DELETE"); break;
+                    case "5": statements.Add("EXEC"); break;
+                    default:
+                        Console.WriteLine($"Opción inválida: {option}");
+                        return;
+                }
+            }
+
+            if (statements.Count == 0)
+            {
+                Console.WriteLine("No se seleccionó ningún statement válido.");
+                return;
+            }
+
+            string combinedStatements = string.Join(", ", statements);
+            string pdfFileName = $"LogsPorStatement_{string.Join("_", statements)}.pdf";
+            LogsFiltrosPdf(startDate, endDate, combinedStatements, pdfFileName);
+        }
+
+        public static void LogsFiltrosPdf(string startDate, string endDate, string statements, string pdfFileName)
+        {
+            string auditFilePath = @"C:\joancema\*"; // Ruta a los archivos de auditoría
+
+            // Construir la consulta SQL según los parámetros proporcionados
+            string query = @"
+        SELECT
+            event_time,
+            action_id,
+            succeeded,
+            object_id,
+            statement,
+            server_principal_name,
+            database_principal_name,
+            session_id
+        FROM sys.fn_get_audit_file(@AuditFilePath, NULL, NULL)
+        WHERE 1 = 1";
+
+            if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+            {
+                query += $" AND event_time BETWEEN '{startDate}' AND '{endDate}'";
+            }
+
+            if (!string.IsNullOrEmpty(statements))
+            {
+                query += " AND (";
+                string[] statementsArray = statements.Split(new[] { ", " }, StringSplitOptions.None);
+                for (int i = 0; i < statementsArray.Length; i++)
+                {
+                    query += $"CHARINDEX('{statementsArray[i]}', statement) > 0";
+                    if (i < statementsArray.Length - 1)
+                    {
+                        query += " OR ";
+                    }
+                }
+                query += ")";
+            }
+
+            // Conectar a SQL Server y ejecutar la consulta
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@AuditFilePath", auditFilePath);
+                SqlDataReader reader = command.ExecuteReader();
+
+                // Mostrar resultados en la consola
+                Console.WriteLine($"\nResultados de la consulta para {pdfFileName}:");
+
+                DataTable dataTable = new DataTable();
+                dataTable.Load(reader);
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    DisplayDataTable(dataTable); // Mostrar datos en forma de tabla en la consola
+
+                    // Generar documento PDF
+                    GeneratePdfFromDataTable(dataTable, pdfFileName);
+                }
+                else
+                {
+                    Console.WriteLine("No se encontraron resultados.");
+                }
+            }
+        }
+
+        public static void DisplayDataTable(DataTable table)
+        {
+            foreach (DataColumn col in table.Columns)
+            {
+                Console.Write($"{col.ColumnName,-25} | ");
+            }
+            Console.WriteLine();
+
+            foreach (DataRow row in table.Rows)
+            {
+                foreach (var item in row.ItemArray)
+                {
+                    Console.Write($"{item,-25} | ");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static void GeneratePdfFromDataTable(DataTable table, string pdfFileName)
+        {
+            string pdfPath = $"C:/Users/Usuario/Desktop/auditoria/{pdfFileName}";
+            PageSize pageSize = PageSize.A4.Rotate();
+            PdfWriter writer = new PdfWriter(pdfPath);
+            PdfDocument pdf = new PdfDocument(writer);
+            pdf.SetDefaultPageSize(pageSize);
+            Document document = new Document(pdf);
+
+            // Crear tabla PDF
+            Table pdfTable = new Table(UnitValue.CreatePercentArray(new float[] { 1, 1, 1, 1, 1, 1, 1, 1 }));
+            pdfTable.SetWidth(UnitValue.CreatePercentValue(100));
+
+            // Agregar encabezados
+            pdfTable.AddHeaderCell("Event Time");
+            pdfTable.AddHeaderCell("Action ID");
+            pdfTable.AddHeaderCell("Succeeded");
+            pdfTable.AddHeaderCell("Object ID");
+            pdfTable.AddHeaderCell("Statement");
+            pdfTable.AddHeaderCell("Server Principal Name");
+            pdfTable.AddHeaderCell("Database Principal Name");
+            pdfTable.AddHeaderCell("Session ID");
+
+            // Agregar datos
+            foreach (DataRow row in table.Rows)
+            {
+                foreach (var item in row.ItemArray)
+                {
+                    pdfTable.AddCell(new Cell().Add(new Paragraph(item.ToString())));
+                }
+            }
+
+            document.Add(pdfTable);
+            document.Close();
+
+            Console.WriteLine($"Documento PDF generado en: {pdfPath}");
+        }
+
     }
 }
